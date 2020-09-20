@@ -1,0 +1,24 @@
+{
+  "name": "js-form",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel <your entry file>",
+    "build": "parcel build <your entry file>"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MikeShalin/js-form.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MikeShalin/js-form/issues"
+  },
+  "homepage": "https://github.com/MikeShalin/js-form#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "regenerator-runtime": "^0.13.7"
+  }
+}
