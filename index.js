@@ -1,7 +1,9 @@
-import 'regenerator-runtime/runtime'
+import 'regenerator-runtime/runtime';
 
 const STORAGE_NAME = 'form';
 const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
+const MOBILE_MASK = /^\D?[78](\d{3})\D?\D?(\d{3})\D?(\d{2})\D?(\d{2})/;
+const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
 
 (function () {
   class Component {
@@ -17,14 +19,14 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
     }
     
     init(child) {
-      this.component = document.createElement(this.tagName)
+      this.component = document.createElement(this.tagName);
       if(this.parent) {
         this.parent.append(this.component);
       }
       if(child) {
         child.forEach((component) => {
           this.component.append(component);
-        })
+        });
       }
       if(typeof this.body === 'string') {
         this.component.innerHTML = this.body;
@@ -38,7 +40,7 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       if(Array.isArray(this.className)) {
         this.className.forEach(className => {
           this.component.classList.add(className);
-        })
+        });
       }
       if(typeof this.className === 'string') {
         this.component.classList.add(this.className);
@@ -57,14 +59,14 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
     }
     
     get current() {
-      return this.component
+      return this.component;
     }
     
     appendChild(children) {
       this.component.innerHTML = '';
       children.forEach((component) => {
         this.component.append(component);
-      })
+      });
     }
   }
   
@@ -75,7 +77,11 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
   
   const ListRender = (listItems, callback) => (
     listItems.map((friend => {
-      const Friend = new Component({ tagName: 'li', body: friend, className: 'friend' });
+      const Friend = new Component({
+        tagName: 'li',
+        body: friend,
+        className: 'friend',
+      });
       Friend.init();
       if(callback) {
         Friend.addEvent('click', () => callback(friend));
@@ -96,13 +102,13 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       });
       return await response.json();
     } catch (error) {
-      console.error('fetching error', error)
+      console.error('fetching error', error);
     }
-  }
+  };
   
   async function start() {
-    const apiMale = await apiCall('http://localhost:3000/male')
-    const apiFemale = await apiCall('http://localhost:3000/female')
+    const apiMale = await apiCall('http://localhost:3000/male');
+    const apiFemale = await apiCall('http://localhost:3000/female');
     let name = '';
     let tel = '';
     if(localStorage.getItem(STORAGE_NAME)) {
@@ -122,9 +128,9 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       tagName: 'div',
       className: 'NameBox',
     });
-  
+    
     NameBox.init();
-  
+    
     const InputName = new Component({
       parent: NameBox.current,
       tagName: 'input',
@@ -141,9 +147,12 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       className: 'input',
       placeholder: 'Mobile',
     });
-  
-  
-    const List = new Component({ parent: NameBox.current, tagName: 'ul', className: ['list', 'hide'] });
+    
+    const List = new Component({
+      parent: NameBox.current,
+      tagName: 'ul',
+      className: ['list', 'hide'],
+    });
     
     const SubmitBtn = new Component({
       parent: Wrapper.current,
@@ -151,7 +160,7 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       attrType: 'submit',
       body: 'Submit',
       className: 'btn',
-      disabled: true,
+      // disabled: true,
     });
     
     const ResetBtn = new Component({
@@ -167,11 +176,11 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
     const proxyData = {
       data,
       get friends() {
-        return this.data
+        return this.data;
       },
       
       set filterFriends(friends) {
-        this.data = friends
+        this.data = friends;
       },
     };
     
@@ -185,6 +194,7 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
     });
     
     InputTel.addEvent('keyup', ({ target }) => {
+      target.value = target.value.replace(MOBILE_MASK, MOBILE_STRING_PATTERN);
       InputTel.current.setAttribute('value', target.value);
     });
     
@@ -208,20 +218,20 @@ const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
       const friendFiltered = onFilter(proxyData.friends, InputName.current.value);
       List.appendChild(ListRender(friendFiltered, (clickedItem) => {
         InputName.current.value = clickedItem;
-        List.current.classList.add('hide')
+        List.current.classList.add('hide');
       }));
       
-      if (!InputName.current.value || !friendFiltered.length) {
-        List.current.classList.add('hide')
+      if(!InputName.current.value || !friendFiltered.length) {
+        List.current.classList.add('hide');
       } else {
-        List.current.classList.remove('hide')
+        List.current.classList.remove('hide'); //todo added form and onSubmit
       }
       
       // SubmitBtn.current.disabled = !!InputName.current.value; todo check it
     });
     
     const observerInputTel = new MutationObserver(() => {
-      SubmitBtn.current.disabled = !MOBILE_PATTERN.exec(InputTel.current.value);
+      // SubmitBtn.current.disabled = !MOBILE_PATTERN.exec(InputTel.current.value);
     });
     
     observerInputName.observe(InputName.current, { attributes: true });
