@@ -1,35 +1,28 @@
 import 'regenerator-runtime/runtime';
-import { STORAGE_NAME, MOBILE_MASK_NORMALIZED } from './constants';
+import {
+  STORAGE_NAME,
+  MOBILE_MASK_NORMALIZED,
+  MOBILE_PATTERN,
+} from './constants';
 import {
   searchStringFilter,
   ListRender,
   checkValidate,
   addTelMask,
+  apiCall
 } from './helpers';
 import { Component } from './Component';
 
 (function () {
   const main = document.getElementById('root');
   
-  const apiCall = async (url) => {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('fetching error', error);
-    }
-  };
-  
   async function start() {
     const apiMale = await apiCall('http://localhost:3000/male');
     const apiFemale = await apiCall('http://localhost:3000/female');
+    
     let name = '';
     let tel = '';
+    
     if(localStorage.getItem(STORAGE_NAME)) {
       [name, tel] = Object.entries(JSON.parse(localStorage.getItem(STORAGE_NAME)))[0];
     }
@@ -122,11 +115,13 @@ import { Component } from './Component';
     InputName.addEvent('keyup', ({ target }) => {
       InputName.current.setAttribute('value', target.value);
       InputName.current.toggleClassNames('value', target.value);
+      InputName.toggleClassNames(target.value ? 'remove' : 'add', 'error')
     });
     
     InputTel.addEvent('keyup', ({ target }) => {
       target.value = addTelMask(target.value);
       InputTel.current.setAttribute('value', target.value);
+      InputTel.toggleClassNames(!MOBILE_PATTERN.exec(target.value) ? 'remove' : 'add', 'error')
     });
     
     SubmitBtn.addEvent('click', handleSubmit);
