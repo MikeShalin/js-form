@@ -1,95 +1,14 @@
 import 'regenerator-runtime/runtime';
-
-const STORAGE_NAME = 'form';
-const MOBILE_PATTERN = /^\+?[789]\d{9,10}$/;
-const MOBILE_MASK = /^\D?[78](\d{3})\D?\D?(\d{3})\D?(\d{2})\D?(\d{2})/;
-const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
+import { STORAGE_NAME, MOBILE_MASK_NORMALIZED } from './constants';
+import {
+  searchStringFilter,
+  ListRender,
+  checkValidate,
+  addTelMask,
+} from './helpers';
+import { Component } from './Component';
 
 (function () {
-  class Component {
-    constructor({ parent, tagName, body, attrType, value, className, placeholder, disabled }) {
-      this.parent = parent;
-      this.tagName = tagName;
-      this.body = body;
-      this.type = attrType;
-      this.value = value;
-      this.className = className;
-      this.placeholder = placeholder;
-      this.disabled = disabled;
-    }
-    
-    init(child) {
-      this.component = document.createElement(this.tagName);
-      if(this.parent) {
-        this.parent.append(this.component);
-      }
-      if(child) {
-        child.forEach((component) => {
-          this.component.append(component);
-        });
-      }
-      if(typeof this.body === 'string') {
-        this.component.innerHTML = this.body;
-      }
-      if(typeof this.type === 'string') {
-        this.component.type = this.type;
-      }
-      if(typeof this.value === 'string') {
-        this.component.value = this.value;
-      }
-      if(Array.isArray(this.className)) {
-        this.className.forEach(className => {
-          this.component.classList.add(className);
-        });
-      }
-      if(typeof this.className === 'string') {
-        this.component.classList.add(this.className);
-      }
-      if(typeof this.placeholder === 'string') {
-        this.component.placeholder = this.placeholder;
-      }
-      if(this.disabled) {
-        this.component.disabled = this.disabled;
-      }
-    }
-    
-    addEvent(event, callback) {
-      this.component.addEventListener(event, callback);
-      return this.component.value;
-    }
-    
-    get current() {
-      return this.component;
-    }
-    
-    appendChild(children) {
-      this.component.innerHTML = '';
-      children.forEach((component) => {
-        this.component.append(component);
-      });
-    }
-  }
-  
-  const searchStringFilter = (item, filterStr) => {
-    if(filterStr === '') return -1;
-    return item.toLowerCase().indexOf(filterStr.toLowerCase());
-  };
-  
-  const ListRender = (listItems, callback) => (
-    listItems.map((friend => {
-      const Friend = new Component({
-        tagName: 'li',
-        body: friend,
-        className: 'friend',
-      });
-      Friend.init();
-      if(callback) {
-        Friend.addEvent('click', () => callback(friend));
-      }
-      return Friend.current;
-    }))
-  );
-  
   const main = document.getElementById('root');
   
   const apiCall = async (url) => {
@@ -115,16 +34,16 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
       [name, tel] = Object.entries(JSON.parse(localStorage.getItem(STORAGE_NAME)))[0];
     }
     
-    const Wrapper = new Component({
+    const Form = new Component({
       parent: main,
-      tagName: 'div',
+      tagName: 'form',
       className: 'wrapper',
     });
     
-    Wrapper.init();
+    Form.init();
     
     const NameBox = new Component({
-      parent: Wrapper.current,
+      parent: Form.current,
       tagName: 'div',
       className: 'NameBox',
     });
@@ -140,10 +59,10 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
     });
     
     const InputTel = new Component({
-      parent: Wrapper.current,
+      parent: Form.current,
       tagName: 'input',
       attrType: 'tel',
-      value: tel,
+      value: addTelMask(tel),
       className: 'input',
       placeholder: 'Mobile',
     });
@@ -154,17 +73,8 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
       className: ['list', 'hide'],
     });
     
-    const SubmitBtn = new Component({
-      parent: Wrapper.current,
-      tagName: 'button',
-      attrType: 'submit',
-      body: 'Submit',
-      className: 'btn',
-      // disabled: true,
-    });
-    
     const ResetBtn = new Component({
-      parent: Wrapper.current,
+      parent: Form.current,
       tagName: 'button',
       attrType: 'button',
       body: 'Reset',
@@ -186,25 +96,41 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
     
     InputName.init();
     InputTel.init();
+    
+    const SubmitBtn = new Component({
+      parent: Form.current,
+      tagName: 'button',
+      attrType: 'submit',
+      body: 'Submit',
+      className: 'btn',
+      disabled: checkValidate(InputName.current.value, InputTel.current.value),
+    });
+    
     SubmitBtn.init();
     ResetBtn.init();
     
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      localStorage.setItem(STORAGE_NAME, JSON.stringify({
+        [InputName.current.value]: InputTel.current.value.replace(MOBILE_MASK_NORMALIZED, ''),
+      }));
+      
+      InputName.current.value = '';
+      InputTel.current.value = '';
+    };
+    
     InputName.addEvent('keyup', ({ target }) => {
       InputName.current.setAttribute('value', target.value);
+      InputName.current.toggleClassNames('value', target.value);
     });
     
     InputTel.addEvent('keyup', ({ target }) => {
-      target.value = target.value.replace(MOBILE_MASK, MOBILE_STRING_PATTERN);
+      target.value = addTelMask(target.value);
       InputTel.current.setAttribute('value', target.value);
     });
     
-    SubmitBtn.addEvent('click', ({ target }) => {
-      localStorage.setItem(STORAGE_NAME, JSON.stringify({
-        [InputName.current.value]: InputTel.current.value,
-      }));
-      InputName.current.value = '';
-      InputTel.current.value = '';
-    });
+    SubmitBtn.addEvent('click', handleSubmit);
+    Form.addEvent('submit', handleSubmit);
     
     ResetBtn.addEvent('click', ({ target }) => {
       InputName.current.value = '';
@@ -212,10 +138,10 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
       localStorage.removeItem(STORAGE_NAME);
     });
     
-    
     const observerInputName = new MutationObserver(() => {
       const onFilter = (friends, stringFilter) => friends.filter((friend => searchStringFilter(String(friend), String(stringFilter)) === 0));
       const friendFiltered = onFilter(proxyData.friends, InputName.current.value);
+      
       List.appendChild(ListRender(friendFiltered, (clickedItem) => {
         InputName.current.value = clickedItem;
         List.current.classList.add('hide');
@@ -224,14 +150,14 @@ const MOBILE_STRING_PATTERN = '+7($1)-$2-$3-$4';
       if(!InputName.current.value || !friendFiltered.length) {
         List.current.classList.add('hide');
       } else {
-        List.current.classList.remove('hide'); //todo added form and onSubmit
+        List.current.classList.remove('hide');
       }
       
-      // SubmitBtn.current.disabled = !!InputName.current.value; todo check it
+      SubmitBtn.current.disabled = checkValidate(InputName.current.value, InputTel.current.value);
     });
     
     const observerInputTel = new MutationObserver(() => {
-      // SubmitBtn.current.disabled = !MOBILE_PATTERN.exec(InputTel.current.value);
+      SubmitBtn.current.disabled = checkValidate(InputName.current.value, InputTel.current.value);
     });
     
     observerInputName.observe(InputName.current, { attributes: true });

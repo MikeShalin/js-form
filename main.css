@@ -116,3 +116,8 @@
 .hide {
   display: none;
 }
+
+.error {
+  border-color:  #FF918A;
+  color:  #FF918A;
+}
