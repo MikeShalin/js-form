@@ -57,6 +57,7 @@
   background: none;
   border-color: rgba(0, 0, 0, 0.23);
   outline: none;
+  border-style: solid;
 }
 
 .input:hover {
@@ -77,7 +78,7 @@
 
 .list {
   position: absolute;
-  box-shadow: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
   display: flex;
   overflow: auto;
   flex-direction: column;
@@ -98,7 +99,7 @@
 }
 
 .NameBox .input {
-  margin-left: -15px; //todo check it
+  margin-left: -15px;
 }
 
 .list .friend {
@@ -118,6 +119,6 @@
 }
 
 .error {
-  border-color:  #FF918A;
-  color:  #FF918A;
+  border-color: #FF918A !important;
+  color: #FF918A !important;
 }

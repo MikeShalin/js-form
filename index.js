@@ -6,7 +6,6 @@ import {
 } from './constants';
 import {
   searchStringFilter,
-  ListRender,
   checkValidate,
   addTelMask,
   apiCall
@@ -114,14 +113,13 @@ import { Component } from './Component';
     
     InputName.addEvent('keyup', ({ target }) => {
       InputName.current.setAttribute('value', target.value);
-      InputName.current.toggleClassNames('value', target.value);
       InputName.toggleClassNames(target.value ? 'remove' : 'add', 'error')
     });
     
     InputTel.addEvent('keyup', ({ target }) => {
       target.value = addTelMask(target.value);
       InputTel.current.setAttribute('value', target.value);
-      InputTel.toggleClassNames(!MOBILE_PATTERN.exec(target.value) ? 'remove' : 'add', 'error')
+      InputTel.toggleClassNames(MOBILE_PATTERN.exec(target.value) ? 'remove' : 'add', 'error')
     });
     
     SubmitBtn.addEvent('click', handleSubmit);
@@ -157,7 +155,24 @@ import { Component } from './Component';
     
     observerInputName.observe(InputName.current, { attributes: true });
     observerInputTel.observe(InputTel.current, { attributes: true });
-    
+  
+    const ListRender = (listItems, callback) => (
+      listItems.map((friend => {
+        const Friend = new Component({
+          tagName: 'li',
+          body: friend,
+          className: 'friend',
+        });
+      
+        Friend.init();
+      
+        if(callback) {
+          Friend.addEvent('click', () => callback(friend));
+        }
+      
+        return Friend.current;
+      }))
+    );
     List.init();
   }
   

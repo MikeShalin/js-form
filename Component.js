@@ -62,6 +62,7 @@ export class Component {
   }
   
   toggleClassNames(action, className) {
+    console.log('lol', [action, className])
     if(action === 'add') {
       this.component.classList.add(className);
     }
